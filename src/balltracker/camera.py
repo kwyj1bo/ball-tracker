@@ -115,10 +115,15 @@ def calibrate_pose(
 
 
 def calibrate_intrinsics(
-    images: list[np.ndarray], pattern: tuple[int, int], square_m: float
+    images: list[np.ndarray],
+    pattern: tuple[int, int],
+    square_m: float,
+    flags: int = cv2.CALIB_FIX_K3,
 ) -> tuple[np.ndarray, np.ndarray, float]:
     """K, distortion and RMS reprojection error from checkerboard photos.
-    pattern is the count of inner corners (columns, rows)."""
+    pattern is the count of inner corners (columns, rows). k3 is fixed at zero by default:
+    phone lenses rarely need it, and with few views it trades off against the focal
+    length instead of describing the lens."""
     grid = np.zeros((pattern[0] * pattern[1], 3), np.float32)
     grid[:, :2] = np.mgrid[0 : pattern[0], 0 : pattern[1]].T.reshape(-1, 2) * square_m
     object_points, image_points = [], []
@@ -133,5 +138,7 @@ def calibrate_intrinsics(
     if len(image_points) < 3:
         raise ValueError(f"checkerboard found in {len(image_points)} images; need at least 3")
     h, w = images[0].shape[:2]
-    rms, K, dist, _, _ = cv2.calibrateCamera(object_points, image_points, (w, h), None, None)
+    rms, K, dist, _, _ = cv2.calibrateCamera(
+        object_points, image_points, (w, h), None, None, flags=flags
+    )
     return K, dist.ravel()[:5], float(rms)

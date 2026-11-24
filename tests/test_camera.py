@@ -54,17 +54,20 @@ def _checkerboard(cam, pattern=(9, 6), square=0.03):
     return cv2.warpPerspective(board, H, (w, h), borderValue=128)
 
 
-def test_intrinsics_from_rendered_checkerboards():
-    rng = np.random.default_rng(3)
+@pytest.mark.parametrize("seed", [3, 4, 5])
+def test_intrinsics_from_rendered_checkerboards(seed):
+    rng = np.random.default_rng(seed)
     base = Camera.looking_at([0, 0, -0.5], [0.12, 0.08, 0], size=(960, 540), hfov_deg=60)
     images = []
-    for _ in range(8):
+    for _ in range(14):
+        # Views tilted well away from face-on: tilt is what separates focal length
+        # from distance to the board.
         target = np.array([0.135, 0.09, 0]) + rng.uniform(-0.03, 0.03, 3) * [1, 1, 0]
-        position = target + rng.uniform([-0.25, -0.25, -0.6], [0.25, 0.25, -0.4])
+        position = target + rng.uniform([-0.35, -0.35, -0.6], [0.35, 0.35, -0.35])
         cam = Camera.looking_at(position, target, size=(960, 540), hfov_deg=60)
         cam.K = base.K
         images.append(_checkerboard(cam))
     K, dist, rms = calibrate_intrinsics(images, (9, 6), 0.03)
     assert rms < 0.5
-    assert K[0, 0] == pytest.approx(base.K[0, 0], rel=0.02)
-    assert K[0, 2] == pytest.approx(480, abs=10)
+    assert K[0, 0] == pytest.approx(base.K[0, 0], rel=0.01)
+    assert K[0, 2] == pytest.approx(480, abs=8)
