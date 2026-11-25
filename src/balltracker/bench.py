@@ -42,6 +42,8 @@ def run(deliveries: int, ablation_deliveries: int, workers: int) -> dict:
             "results": [asdict(r) for r in results],
         }
     main = out["runs"]["main"]
+    same_seeds = [DeliveryResult(**r) for r in main["results"][:ablation_deliveries]]
+    main["same_seeds_as_ablations"] = summarise(same_seeds)
     main["by_ball"] = {
         ball: summarise([DeliveryResult(**r) for r in main["results"] if r["ball"] == ball])
         for ball in ("white", "red")

@@ -26,4 +26,5 @@ def predict(delivery: Delivery) -> Prediction:
     flight = simulate(delivery.vector(), np.array([horizon]))
     bounce = flight.bounce_point[0]
     yz = crossing[2:]
-    return Prediction(delivery.speed_kmh, bounce, yz, reaches and hits_stumps(yz[0], yz[1]))
+    hitting = reaches and bool(hits_stumps(yz[0], yz[1]))
+    return Prediction(delivery.speed_kmh, bounce, yz, hitting)
