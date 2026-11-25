@@ -53,4 +53,4 @@ def crease_lines() -> list[tuple[np.ndarray, np.ndarray]]:
 
 def hits_stumps(y: float, z: float) -> bool:
     """Whether a ball centre crossing the stumps plane at (y, z) would hit the wicket."""
-    return abs(y) <= STUMPS_HALF_WIDTH + BALL_RADIUS and z <= STUMPS_HEIGHT + BALL_RADIUS
+    return bool(abs(y) <= STUMPS_HALF_WIDTH + BALL_RADIUS and z <= STUMPS_HEIGHT + BALL_RADIUS)

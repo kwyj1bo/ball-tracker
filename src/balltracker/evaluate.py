@@ -25,6 +25,9 @@ from balltracker.scenario import random_delivery, random_setup
 from balltracker.track import BallTracker
 
 IMPACT_X = 17.5
+# The fit has 11 unknowns and each tracked point gives two equations, so 10 points leave
+# a little redundancy. This is about 0.3 s of flight at 30 fps.
+MIN_POINTS = 10
 
 
 @dataclass(frozen=True)
@@ -80,7 +83,7 @@ def evaluate_delivery(seed: int, config: EvalConfig) -> DeliveryResult:
         np.nan,
         cal_rms,
     )
-    if track is None or len(track) < 20:
+    if track is None or len(track) < MIN_POINTS:
         result.status = "no_track" if track is None else "short_track"
         return result
     result.track_error_px = float(
@@ -120,7 +123,7 @@ def _score_full(result, fitter, track, times, truth, delivery) -> None:
 
 def _score_impact(result, fitter, track, times, truth, delivery) -> None:
     before = truth.centres[track.frames][:, 0] < IMPACT_X
-    if before.sum() < 20:
+    if before.sum() < MIN_POINTS:
         result.status = "short_track"
         return
     t0 = times[before][0]

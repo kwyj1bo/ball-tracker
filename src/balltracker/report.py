@@ -61,8 +61,10 @@ def to_markdown(data: dict, command: str) -> str:
         "",
         "Each row runs the same seeded deliveries with one thing changed.",
         "",
-        *_table(ABLATION_HEADER, [_ablation_row(name, run["summary"])
-                                  for name, run in data["runs"].items()]),
+        *_table(ABLATION_HEADER, [
+            _ablation_row(_label(name, main), _ablation_summary(name, run))
+            for name, run in data["runs"].items()
+        ]),
         "",
         "## Worst cases in the main run",
         "",
@@ -74,6 +76,18 @@ def to_markdown(data: dict, command: str) -> str:
         "",
     ]  # fmt: skip
     return "\n".join(lines)
+
+
+def _ablation_summary(name: str, run: dict) -> dict:
+    """The main run has more deliveries; compare it on the ablations' seeds only."""
+    return run.get("same_seeds_as_ablations", run["summary"]) if name == "main" else run["summary"]
+
+
+def _label(name: str, main: dict) -> str:
+    if name != "main":
+        return name
+    n = main.get("same_seeds_as_ablations", main["summary"])["deliveries"]
+    return f"main (240 fps, 1.5 px clicks), first {n} seeds"
 
 
 def _ablation_row(name: str, r: dict) -> list:
